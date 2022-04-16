@@ -66,7 +66,7 @@ const displayMovements = function (movements) {
             <div class="movements__row">
                 <div class="movements__type movements__type--${type}">1 ${type}</div> 
                 <div class="movements__date">${i + 1} days ago</div>
-                <div class="movements__value">${mov}</div>
+                <div class="movements__value">${mov < 0 ? (mov = `-$${mov.toString().slice(1)}`) : (mov = `$${mov}`)}</div>
             </div>
         `;
 		containerMovements.insertAdjacentHTML('afterbegin', html);
@@ -83,7 +83,7 @@ const displayMovements = function (movements) {
 	calcDisplayBalance(account1.movements);
 };
 
-displayMovements(account1.movements);
+// displayMovements(account1.movements);
 
 const createUserName = function (accs) {
 	accs.forEach(acc => {
@@ -97,25 +97,33 @@ const createUserName = function (accs) {
 
 createUserName(accounts);
 
-const dogAge1 = [5, 2, 4, 1, 15, 8, 3];
-const dogAge2 = [16, 6, 10, 5, 6, 1, 4];
+const calcDisplaySummary = function (movements) {
+	const incomes = movements.filter(mov => mov > 0).reduce((acc, mov) => acc + mov);
+	const out = movements.filter(mov => mov < 0).reduce((acc, mov) => acc + mov);
+	const interest = movements
+		.filter(mov => mov > 0)
+		.map(mov => (mov * 1.2) / 100)
+		.filter(mov => mov >= 1)
+		.reduce((acc, mov) => acc + mov);
+	console.log(interest);
 
-const calcAverageHumanAge = function (ages) {
-	let humanAge = ages
-		.map(dogAge => {
-			if (dogAge <= 2) {
-				return 2 * dogAge;
-			} else if (dogAge > 2) {
-				return 16 + dogAge * 4;
-			}
-		})
-		.filter(age => age >= 18);
-
-	console.log(humanAge);
-
-	let averageHumanAge = Math.trunc(humanAge.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0));
-
-	console.log(averageHumanAge);
+	labelSumIn.textContent = `$${incomes}`;
+	labelSumOut.textContent = `-$${Math.abs(out)}`;
+	labelSumInterest.textContent = `${interest}`;
 };
-calcAverageHumanAge(dogAge1);
-calcAverageHumanAge(dogAge2);
+calcDisplaySummary(account1.movements);
+
+// Event handlers
+let currentAccount;
+
+btnLogin.addEventListener('click', function (e) {
+	e.preventDefault();
+
+	currentAccount = accounts.find(acc => acc.userName === inputLoginUsername.value);
+	// console.log(currentAccount);
+
+	if (currentAccount.pin == inputLoginPin.value) {
+		console.log(currentAccount);
+		displayMovements(currentAccount.movements);
+	}
+});
